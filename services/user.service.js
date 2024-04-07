@@ -1,7 +1,6 @@
 const boom = require('@hapi/boom');
-const getConnection = require('../libs/postgres')
-const pool = require('../libs/postgres.pool')
 const {models} = require('../libs/sequelize')
+const bcrypt = require('bcrypt');
 
 class UserService {
   constructor() {
@@ -14,7 +13,12 @@ class UserService {
     if (emailExist) {
       throw boom.badData('duplicated unique email');
     }
-    const newUser = await models.User.create(data);
+    const hash = await bcrypt.hash(data?.password, 10);
+
+    const newUser = await models.User.create({
+      ...data, password: hash
+    });
+    delete newUser.dataValues.password;
     console.log('Método create - UserService')
     console.log(newUser)
     return newUser;
