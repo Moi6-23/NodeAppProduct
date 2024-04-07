@@ -14,13 +14,10 @@ class UserService {
       throw boom.badData('duplicated unique email');
     }
     const hash = await bcrypt.hash(data?.password, 10);
-
     const newUser = await models.User.create({
       ...data, password: hash
     });
     delete newUser.dataValues.password;
-    console.log('Método create - UserService')
-    console.log(newUser)
     return newUser;
 
   }

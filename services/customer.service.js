@@ -1,5 +1,6 @@
 const boom = require('@hapi/boom');
 const {models} = require('../libs/sequelize')
+const bcrypt = require('bcrypt');
 
 class CustomerService {
   constructor() {
@@ -12,9 +13,19 @@ class CustomerService {
     if (nameExist) {
       throw boom.badData('duplicated unique email');
     }
-    const newCustomer = await models.Customer.create(data, {
+    const hash = await bcrypt.hash(data.user.password, 10);
+    let dataHash = {
+      ...data,
+      user:{
+        ...data.user,
+        password: hash
+      }
+    }
+    const newCustomer = await models.Customer.create(dataHash, {
       include:['user']
     });
+    let path = newCustomer.dataValues.user;
+    delete path.dataValues.password
     return newCustomer;
   }
 
