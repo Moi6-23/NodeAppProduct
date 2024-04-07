@@ -3,11 +3,14 @@ const cors = require('cors');
 const routerApi = require('./routes');
 const checkApiKey = require('./middlewares/auth.handler');
 const { logErrors, errorHandler, boomErrorHandler, validationDBHandler } = require('./middlewares/error.handler');
+const passport = require('passport')
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+// app.use(passport.initialize());
+require('./utils/auth');
 
 const whitelist = ['http://localhost:8080', 'https://myapp.co'];
 const options = {
