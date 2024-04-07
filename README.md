@@ -1,2 +1,0 @@
-# NodeAppProduct
-Backend de productos

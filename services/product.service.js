@@ -1,96 +1,100 @@
 const { faker } = require('@faker-js/faker');
 const boom = require('@hapi/boom');
-
-
+const {models} = require('../libs/sequelize')
+const {Op} = require('sequelize')
 class ProductsService {
 
-  constructor() {
-    this.products = [];
-    this.generate();
+  constructor(){
   }
 
-  async generate() {
+  generate() {
     const limit = 100;
-    for (let index = 0; index < Number(limit); index++) {
+    for (let index = 0; index < limit; index++) {
       this.products.push({
-        id: faker.string.uuid(),
         name: faker.commerce.productName(),
         price: parseInt(faker.commerce.price(), 10),
-        image: faker.image.url(),
-        isBlock:faker.datatype.boolean(),
-      })
+        description: 'Producto faker',
+        ca
+      });
     }
   }
 
-  async create({ name, price }) {
-    let newProduct = {
-      id: faker.string.uuid(),
-      name: name,
-      price: parseInt(Number(price), 10),
-      image: faker.image.url(), 
-      isBlock:faker.datatype.boolean(),
-    }
-    this.products.push(newProduct)
+  async create(data) {
+    const newProduct = await models.Products.create(data);
     return newProduct;
   }
 
-  async find() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(this.products)
-      }, 2000)
-    })
+  async find(query) {
+    const options = {
+      include:['category'],
+      where:{}
+    }
+    const {limit, offset} = query;
+    if(limit && offset){
+      options.limit = limit;
+      options.offset = offset;
+    }
+
+    const {price} = query;
+
+    if(price){
+      options.where.precio = price;
+    }
+
+    const rta = await models.Products.findAll(options);
+    console.log(rta)
+    return rta;
   }
 
-  async findOne(uuid) {
-    const product = this.products.find((produ) => produ.id === uuid);
-    if(!product){
-      throw boom.notFound('product not found')
-    }
-    if(product.isBlock){
-      throw boom.conflict('Product is block')
+  async findBetween(query) {
+    const options = {
+      include:['category'],
+      where:{}
     }
 
+    const {price_min, price_max} = query;
+
+    if(price_min && price_max){
+      options.where.precio = {
+        [Op.between]: [price_min, price_max],
+      };
+    }
+
+    const rta = await models.Products.findAll(options);
+    return rta;
+  }
+
+  async findOne(id) {
+    const product = await models.Products.findByPk(id);
+    if(!product){
+      throw boom.notFound('Categories not found');
+    }
     return product;
   }
 
-  async update(id, data) {
-    const index = this.products.findIndex(objeto => objeto.id === id);
+  async update(id, changes) {
+    const index = this.products.findIndex(item => item.id === id);
     if (index === -1) {
-      throw boom.notFound('product not found')
+      throw boom.notFound('product not found');
     }
     const product = this.products[index];
-    if (product.isBlock){
-      throw boom.conflict("Product is Block");
-    }
-    this.products[index] = { ...this.products[index], ...data };
+    this.products[index] = {
+      ...product,
+      ...changes
+    };
     return this.products[index];
-
-    // if (index !== -1) {
-    //     this.products[index] = { ...this.products[index], ...data };
-    //     return 200;
-    // } else {
-    //     return 404;
-    // }th
   }
 
-  async delete1(id) {
-    const idExists = this.products.some(prod => prod.id === id);
-    if (idExists) {
-      this.products = this.products.filter((prod) => prod.id !== id)
-      return 200;
-    } else {
-      throw boom.notFound('product not found')
+  async delete(id) {
+    const product = await this.findOne(id);
+    const resp = await product.destroy();
+    console.log(resp)
+    let respMessaje = {
+      message: 'Se ha eliminado correctamente',
+      id: 1,
+      email: Categories.name
     }
-  }
-  // Más eficiente
-  async delete2(id) {
-    const index = this.products.findIndex(prod => prod.id === id);
-    if (index === -1) {
-      throw boom.notFound('product not found')
-    }
-    this.products.splice(index, 1);
-    return {id}
+    return {...respMessaje};
   }
 
 }

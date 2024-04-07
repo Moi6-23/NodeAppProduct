@@ -1,26 +1,34 @@
-// paso 1
-function logError(err, req, res, next){
-  console.log('logErrors')
-  console.error(err)
-  next(err)
+function logErrors (err, req, res, next) {
+  console.error(err);
+  next(err);
 }
-// paso 3
-function errroHandler(err, req, res, next){
-  console.log('handler')
-  res.status(500).json({
-    message: err.message,
-    stack: err.stack
-  })
-}
-// paso 2
-function boomErrorHandler(err, req, res, next){
-  if(err.isBoom){
-    // En el output se encuentra toda la información del error de boom
-    const {output} = err;
-    res.status(output.statusCode).json(output.payload)
-  }else{
-    next(err)
+
+function errorHandler(err, req, res, next) {
+    res.status(500).json({
+      message: err.message,
+      stack: err.stack,
+    });
+ }
+
+function boomErrorHandler(err, req, res, next) {
+  if (err.isBoom) {
+    const { output } = err;
+    res.status(output.statusCode).json(output.payload);
+  } else {
+    next(err);
   }
 }
 
-module.exports = {logError, errroHandler, boomErrorHandler}
+function validationDBHandler(err, req, res, next) {
+  if (err.message === "Validation error") {
+    let message = {
+      message: 'El email ya se encuentra registrado'
+    }
+    res.status(406).json(...message);
+  } else {
+    next(err);
+  }
+}
+
+
+module.exports = { logErrors, errorHandler, boomErrorHandler, validationDBHandler }
