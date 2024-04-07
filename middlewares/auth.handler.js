@@ -11,4 +11,8 @@ function checkApiKey(req, res, next){
   }
 }
 
-module.exports = checkApiKey;
+function checkAdminRole(req, res, next){
+
+}
+
+module.exports = {checkApiKey, checkAdminRole};

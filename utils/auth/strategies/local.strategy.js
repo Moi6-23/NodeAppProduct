@@ -4,9 +4,13 @@ const bcrypt = require('bcrypt');
 const UserService = require('../../../services/user.service');
 const service = new UserService();
 
-const LocalStrategy = new Strategy(async(username, password, done) => {
+const LocalStrategy = new Strategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  },
+  async(email, password, done) => {
   try {
-    const user = await service.findByEmail(username)
+    const user = await service.findByEmail(email)
     if(!user){
       done(boom.unauthorized(), false)
     }
@@ -14,7 +18,7 @@ const LocalStrategy = new Strategy(async(username, password, done) => {
     if(!isMatch){
       done(boom.unauthorized(), false)
     }
-    delete user.password;
+    delete user.dataValues.password;
     done(null, user);
   } catch (error) {
     done(error, false)
