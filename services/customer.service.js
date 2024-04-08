@@ -29,11 +29,28 @@ class CustomerService {
     return newCustomer;
   }
 
+  async createWithId(data) {
+    const nameExist = await models.Customer.findOne({
+      where: { name: data.name },
+    });
+    if (nameExist) {
+      throw boom.badData('duplicated unique name');
+    }
+
+    const newCustomer = await models.Customer.create(data);
+    return newCustomer;
+  }
+
   async find() {
     const rta = await models.Customer.findAll({
-      include: ['user']
+      include: [{
+        model: models.User,
+        as: 'user',
+        attributes: {
+          exclude: ['password']
+        }
+      }],
     });
-    console.log(rta)
     return rta;
   }
 

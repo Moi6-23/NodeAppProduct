@@ -55,6 +55,25 @@ class OrderService {
     return itemCreate;
   }
 
+  async findByUser(userId){
+    const orders = await models.Order.findAll({
+      where: {
+        '$customer.user.id$':userId
+      },
+      include: [
+        {
+          association: 'customer',
+          include:['user']
+        },
+        'items'
+      ]
+    })
+    if (orders.length === 0) {
+      throw boom.notFound('No tiene ordenes');
+    }
+    return orders
+  }
+
 }
 
 module.exports = OrderService;

@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const CustomerService = require('./../services/customer.service');
 const validatorHandler = require('./../middlewares/validator.handler');
-const { updateCustomerSchema, createCustomerSchema, getCustomerSchema } = require('./../schemas/customer.schema');
+const { updateCustomerSchema, createCustomerSchema, createCustomerIdSchema, getCustomerSchema } = require('./../schemas/customer.schema');
 
 const router = express.Router();
 const service = new CustomerService();
@@ -30,12 +30,23 @@ router.get('/:id',
 );
 
 router.post('/',
-  passport.authenticate('jwt', {session:false}),
   validatorHandler(createCustomerSchema, 'body'),
   async (req, res, next) => {
     try {
       const body = req.body;
       const newCustomer = await service.create(body);
+      res.status(201).json(newCustomer);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+router.post('/userId',
+  validatorHandler(createCustomerIdSchema, 'body'),
+  async (req, res, next) => {
+    try {
+      const body = req.body;
+      const newCustomer = await service.createWithId(body);
       res.status(201).json(newCustomer);
     } catch (error) {
       next(error);
